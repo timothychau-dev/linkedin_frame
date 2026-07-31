@@ -2,6 +2,8 @@
 
 Upload a 1:1 profile photo, pick one of three frames, drag and pinch-zoom to position, then share or download the framed result.
 
+This was a hobby prototype I built while working at Ogilvy to celebrate DO Day — a simple tool for colleagues to put their profile pictures in the DOer-branded frames.
+
 ## Features
 
 - 3 selectable frame overlays
