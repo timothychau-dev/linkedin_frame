@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOer's Profile Picture Frame Creator</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="manifest" href="site.webmanifest">
+    <style>
+        :root {
+            --ogilvy-red: #D51130;
+        }
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-image: url('bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        .container {
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            color: var(--ogilvy-red);
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        #imageUpload {
+            display: none;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        #photoContainer #controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Space between buttons */
+}
+        .btn {
+            background-color: var(--ogilvy-red);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            min-width: 150px;
+        }
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #canvasContainer {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto 20px;
+        }
+        #canvas {
+            max-width: 100%;
+            height: auto;
+        }
+        #loading {
+            display: none;
+            margin-top: 10px;
+            color: var(--ogilvy-red);
+        }
+        #instructions {
+            margin-top: 20px;
+            color: #333;
+            font-size: 14px;
+            text-align: left;
+        }
+        #instructions h2 {
+            color: var(--ogilvy-red);
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        #instructions ol {
+            padding-left: 20px;
+        }
+        .frame-selection {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+        }
+        .frame-option {
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 4px;
+            transition: border-color 0.3s;
+            padding: 5px;
+            background-color: white;
+        }
+        .frame-option.selected {
+            border-color: var(--ogilvy-red);
+        }
+        .frame-option img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            h1 {
+                font-size: 20px;
+            }
+            .btn {
+                font-size: 14px;
+                padding: 8px 16px;
+                min-width: 120px;
+            }
+            .frame-option img {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+    
+            
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HDR2PDGZN5"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-HDR2PDGZN5');
+</script>
+
+    </head>
+<body>
+    <div class="container">
+        <h1>DOer's Profile Picture Frame Creator</h1>
+        <div class="button-container">
+            <input type="file" id="imageUpload" accept="image/*">
+            <label for="imageUpload" id="uploadLabel" class="btn">Upload Image</label>
+            <button id="shareBtn" class="btn">Share Image</button>
+        </div>
+        <div id="loading">Loading...</div>
+        <div id="canvasContainer">
+            <canvas id="canvas"></canvas>
+        </div>
+        <div class="frame-selection">
+            <div class="frame-option selected" data-frame="1">
+                <img src="frame_1.png" alt="Frame 1">
+            </div>
+            <div class="frame-option" data-frame="2">
+                <img src="frame_2.png" alt="Frame 2">
+            </div>
+            <div class="frame-option" data-frame="3">
+                <img src="frame_3.png" alt="Frame 3">
+            </div>
+        </div>
+        <div id="instructions">
+            <h2>How to Use:</h2>
+            <ol>
+                <li>Select a frame from the options above.</li>
+                <li>Click the "Upload Image" button to select your profile picture (must be 1:1 aspect ratio).</li>
+                <li>Use pinch gestures to zoom in/out on mobile devices.</li>
+                <li>Drag the image to reposition it within the frame.</li>
+                <li>Click the "Share Image" button to share your framed profile picture.</li>
+                <li>Use the shared image as your new profile picture!</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const imageUpload = document.getElementById('imageUpload');
+        const uploadLabel = document.getElementById('uploadLabel');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const shareBtn = document.getElementById('shareBtn');
+        const loadingDiv = document.getElementById('loading');
+        const canvasContainer = document.getElementById('canvasContainer');
+        const frameOptions = document.querySelectorAll('.frame-option');
+
+        let uploadedImage = null;
+        let frameImage = null;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let startX, startY;
+        let selectedFrame = 'frame_1.png';
+        const defaultImageUrl = 'demo_do.png';
+        let scale = 1;
+        let lastTouchDistance = 0;
+
+        function showLoading() {
+            loadingDiv.style.display = 'block';
+        }
+
+        function hideLoading() {
+            loadingDiv.style.display = 'none';
+        }
+
+        // Frame selection
+        frameOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                frameOptions.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                const frameNumber = option.getAttribute('data-frame');
+                selectedFrame = `frame_${frameNumber}.png`;
+                loadFrame();
+            });
+        });
+
+        function loadFrame() {
+            showLoading();
+            frameImage = new Image();
+            frameImage.crossOrigin = "Anonymous";
+            frameImage.src = selectedFrame;
+            frameImage.onload = () => {
+                hideLoading();
+                uploadLabel.disabled = false;
+                drawImage();
+            };
+            frameImage.onerror = () => {
+                hideLoading();
+                alert('Error loading frame. Please try again.');
+            };
+        }
+
+        function loadDefaultImage() {
+            showLoading();
+            uploadedImage = new Image();
+            uploadedImage.crossOrigin = "Anonymous";
+            uploadedImage.src = defaultImageUrl;
+            uploadedImage.onload = () => {
+                hideLoading();
+                fitImageToWidth();
+                drawImage();
+            };
+            uploadedImage.onerror = () => {
+                hideLoading();
+                alert('Error loading default image. Please try again.');
+            };
+        }
+
+        loadDefaultImage();
+        loadFrame();
+
+        function loadUserImage(file) {
+            showLoading();
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    if (img.width !== img.height) {
+                        hideLoading();
+                        alert('Please upload a 1:1 aspect ratio image.');
+                        return;
+                    }
+                    uploadedImage = img;
+                    hideLoading();
+                    offsetX = 0;
+                    offsetY = 0;
+                    fitImageToWidth();
+                    drawImage();
+                };
+                img.onerror = () => {
+                    hideLoading();
+                    alert('Error loading image. Please try again.');
+                };
+                img.src = event.target.result;
+            };
+
+            reader.onerror = () => {
+                hideLoading();
+                alert('Error reading file. Please try again.');
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function fitImageToWidth() {
+            if (!uploadedImage) return;
+            const canvasSize = Math.min(400, window.innerWidth - 40);
+            scale = canvasSize / uploadedImage.width;
+        }
+
+        function drawImage() {
+            if (!uploadedImage) return;
+
+            const maxSize = Math.min(400, window.innerWidth - 40);
+            canvas.width = maxSize;
+            canvas.height = maxSize;
+
+            const scaledWidth = uploadedImage.width * scale;
+            const scaledHeight = uploadedImage.height * scale;
+
+            const maxOffsetX = Math.max(0, (scaledWidth - canvas.width) / 2);
+            const maxOffsetY = Math.max(0, (scaledHeight - canvas.height) / 2);
+
+            offsetX = Math.max(Math.min(offsetX, maxOffsetX), -maxOffsetX);
+            offsetY = Math.max(Math.min(offsetY, maxOffsetY), -maxOffsetY);
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.drawImage(
+                uploadedImage,
+                canvas.width / 2 - scaledWidth / 2 + offsetX,
+                canvas.height / 2 - scaledHeight / 2 + offsetY,
+                scaledWidth,
+                scaledHeight
+            );
+
+            if (frameImage) {
+                ctx.drawImage(frameImage, 0, 0, maxSize, maxSize);
+            }
+        }
+
+        imageUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            loadUserImage(file);
+        });
+
+        shareBtn.addEventListener('click', async () => {
+            if (navigator.share) {
+                try {
+                    const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                    const file = new File([blob], 'doer_profile_frame.png', { type: 'image/png' });
+                    await navigator.share({
+                        files: [file],
+                        title: 'DOer Profile Frame',
+                        text: 'Check out my DOer profile frame!'
+                    });
+                } catch (error) {
+                    if (error.name !== 'AbortError') {
+                        console.error('Error sharing:', error);
+                        alert('Error sharing the image. Please try again or use a different method to save the image.');
+                    }
+                    // If it's an AbortError, we do nothing, as it means the user cancelled the share
+                }
+            } else {
+                const dataURL = canvas.toDataURL();
+                const link = document.createElement('a');
+                link.download = 'doer_profile_frame.png';
+                link.href = dataURL;
+                link.click();
+            }
+        });
+
+        canvasContainer.addEventListener('mousedown', startDragging);
+        canvasContainer.addEventListener('mousemove', drag);
+        canvasContainer.addEventListener('mouseup', stopDragging);
+        canvasContainer.addEventListener('mouseleave', stopDragging);
+
+        canvasContainer.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvasContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+        canvasContainer.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                startDragging(e.touches[0]);
+            } else if (e.touches.length === 2) {
+                lastTouchDistance = getTouchDistance(e.touches);
+            }
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            if (e.touches.length === 1 && isDragging) {
+                drag(e.touches[0]);
+            } else if (e.touches.length === 2) {
+                const currentDistance = getTouchDistance(e.touches);
+                const scaleFactor = currentDistance / lastTouchDistance;
+                scale *= scaleFactor;
+                scale = Math.max(1, Math.min(scale, 3));
+                lastTouchDistance = currentDistance;
+                drawImage();
+            }
+        }
+
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            stopDragging();
+        }
+
+        function getTouchDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        function startDragging(e) {
+            if (!uploadedImage) return;
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            const x = e.clientX;
+            const y = e.clientY;
+            const dx = x - startX;
+            const dy = y - startY;
+            offsetX += dx;
+            offsetY += dy;
+            startX = x;
+            startY = y;
+            drawImage();
+        }
+
+        function stopDragging() {
+            isDragging = false;
+        }
+
+        window.addEventListener('resize', () => {
+            if (uploadedImage) {
+                fitImageToWidth();
+                drawImage();
+            }
+        });
+    </script>
+</body>
+</html>
