@@ -9,6 +9,10 @@ Upload a 1:1 profile photo, pick one of three frames, drag and pinch-zoom to pos
 - Clamped repositioning so the image always covers the frame
 - Share via Web Share API with file attachment (fallback: direct download)
 
+## Live demo
+
+Try it live: https://createwithtim.com/prototypes/linkedin_frame/
+
 ## Run locally
 
 ```bash
